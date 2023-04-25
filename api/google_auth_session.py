@@ -6,7 +6,7 @@ from flask.sessions import SecureCookieSessionInterface
 from flask_cors import CORS, cross_origin
 
 # Standard library imports
-import json
+# import json
 
 # Security and Crypto imports
 from cryptography.fernet import Fernet
@@ -24,41 +24,63 @@ from google_auth_oauthlib.flow import Flow
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 # Local imports
+from config import app_config
 from mongodb import MongoDBClient
 
-client_secrets_file = 'secrets/client_secrets.json'
-with open(client_secrets_file) as f:
-    secrets = json.load(f)['installed']
+# client_secrets_file = 'secrets/client_secrets.json'
+# with open(client_secrets_file) as f:
+#     secrets = json.load(f)['installed']
 
 # Get from app setup in Google
-client_id = secrets['client_id']
-project_id = secrets['project_id']
-auth_uri = secrets['auth_uri']
-token_uri = secrets['token_uri']
-auth_provider_x509_cert_url = secrets['auth_provider_x509_cert_url']
-client_secret = secrets['client_secret']
-redirect_uri = secrets['redirect_uris']
+# client_id = secrets['client_id']
+# project_id = secrets['project_id']
+# auth_uri = secrets['auth_uri']
+# token_uri = secrets['token_uri']
+# auth_provider_x509_cert_url = secrets['auth_provider_x509_cert_url']
+# client_secret = secrets['client_secret']
+# redirect_uri = secrets['redirect_uris']
 
-print(f"app with secrets_file:  {client_secrets_file}")
-print(f"app with client_id:     client_id")
-print(f"app with project_id:    {project_id}")
-print(f"app with auth_uri:      {auth_uri}")
-print(f"app with token_uri:     {token_uri}")
-print(f"app with auth_cert_url: {auth_provider_x509_cert_url}")
-print(f"app with client_secret: client_secret")
-print(f"app with redirect_uri:  {redirect_uri}")
+# print(f"app with secrets_file:  {client_secrets_file}")
+print(f"app with client_id:     CLIENT_ID")
+print(f"app with project_id:    {app_config.PROJECT_ID}")
+print(f"app with auth_uri:      {app_config.AUTH_URI}")
+print(f"app with token_uri:     {app_config.TOKEN_URI}")
+print(f"app with auth_cert_url: {app_config.AUTH_PROVIDER_X509_CERT_URL}")
+print(f"app with client_secret: CLIENT_SECRET")
+print(f"app with redirect_uri:  {app_config.REDIRECT_URIS}")
 
-scopes = ['openid',
+print(f"app with DATABASE_URI:  {app_config.DATABASE_URI}")
+print(f"app with DATABASE_NAME:  {app_config.DATABASE_NAME}")
+
+CLIENT_CONFIG = {'web': {
+    'client_id': app_config.CLIENT_ID,
+    'project_id': app_config.PROJECT_ID,
+    'auth_uri': app_config.AUTH_URI,
+    'token_uri': app_config.TOKEN_URI,
+    'auth_provider_x509_cert_url': app_config.AUTH_PROVIDER_X509_CERT_URL,
+    'client_secret': app_config.CLIENT_SECRET,
+    'redirect_uris': app_config.REDIRECT_URIS,
+}}
+
+# This scope will allow the application to manage your calendars
+SCOPES = ['openid',
           'https://www.googleapis.com/auth/userinfo.email',
           'https://www.googleapis.com/auth/userinfo.profile',
           'https://www.googleapis.com/auth/calendar.readonly',
           'https://www.googleapis.com/auth/calendar']
 
-# Helper function to read json file
-def read_json(file_path, key):
-    with open(file_path, "r") as f:
-        data = json.load(f)
-    return data[key]
+#
+# SCOPES = ['openid',
+#           'https://www.googleapis.com/auth/userinfo.email',
+#           'https://www.googleapis.com/auth/userinfo.profile',
+#           'https://www.googleapis.com/auth/calendar.readonly',
+#           'https://www.googleapis.com/auth/calendar']
+
+# # Helper function to read json file
+# def read_json(file_path, key):
+#     with open(file_path, "r") as f:
+#         data = json.load(f)
+#     return data[key]
 
 print("-------- Global Set Up App and Session ---------")
 # Create Flask app instance
@@ -67,10 +89,10 @@ print(f"app with Flask:     {app}")
 
 print("-------- Encrypt Session Cookie ----------------")
 
-cookie_key = read_json("secrets/cookie_secrets.json", "cookie_key")
-print(f"cookie_key:         {cookie_key}")
+# cookie_key = read_json("secrets/cookie_secrets.json", "cookie_key")
+print(f"cookie_key:         {app_config.COOKIE_KEY}")
 
-app.secret_key = cookie_key
+app.secret_key = app_config.COOKIE_KEY
 print(f"app.secret_key:     {app.secret_key}")
 
 # Set up a timed serializer for encryption and signing
@@ -110,7 +132,7 @@ async def initialize_app():
 
     print("-------- Init DB -------------------------------")
     # Initialize MongoDB client
-    mongo_client = MongoDBClient()
+    mongo_client = MongoDBClient(app)
     app.config['mongo_client'] = mongo_client
 
     print("-------- Return App ----------------------------")
@@ -131,8 +153,8 @@ async def auth():
     # Create a flow instance using the client config and scopes
     flow = Flow.from_client_secrets_file(
         client_secrets_file=client_secrets_file,
-        scopes=scopes,
-        redirect_uri='http://localhost:8000/auth'
+        scopes=SCOPES,
+        redirect_uri=app_config.REDIRECT_URIS
     )
     print(f"Flow: {flow}")
 
@@ -182,10 +204,10 @@ async def sign_up():
     print(f"app /sign-up: {app}")
 
     # Create a flow instance using the client config and scopes
-    flow = Flow.from_client_secrets_file(
-        'secrets/client_secrets.json',
-        scopes=scopes,
-        redirect_uri='http://localhost:8000/auth'
+    flow = Flow.from_client_config(
+        client_config=CLIENT_CONFIG,
+        scopes=SCOPES,
+        redirect_uri=app_config.REDIRECT_URIS
     )
     print(f"Flow: {flow}")
 
@@ -237,10 +259,12 @@ async def login(request):
     else:
         print("-------- Connecting to OAuth at /login ---------")
         # Create a flow instance using the client config and scopes
-        flow = Flow.from_client_secrets_file(
-            client_secrets_file=client_secrets_file,
-            scopes=scopes,
-            redirect_uri='http://localhost:8000/auth'
+        # flow = Flow.from_client_secrets_file(
+        #     client_secrets_file=client_secrets_file,
+        flow = Flow.from_client_config(
+            client_config=CLIENT_CONFIG,
+            scopes=SCOPES,
+            redirect_uri=REDIRECT_URI
         )
         print(f"Flow: {flow}")
 
@@ -279,14 +303,12 @@ def oauth_callback():
     if state != session.pop('state', None):
         return 'Invalid state parameter', 400
     flow = Flow.from_client_config(
-        client_config={
-            'client_id': client_id,
-            'client_secret': client_secret,
-            'redirect_uris': redirect_uri,
-            'scope': scopes,
-        },
-        scopes=['openid', 'email', 'profile'],
+        client_config=CLIENT_CONFIG,
+        scopes=SCOPES,
+        redirect_uri=REDIRECT_URI
     )
+    print(f"Flow: {flow}")
+
     flow.fetch_token(code=code)
     # store the credentials in the session or database
     credentials = flow.credentials

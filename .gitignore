@@ -1,0 +1,5 @@
+# production
+/api/secrets
+
+# misc
+.DS_Store

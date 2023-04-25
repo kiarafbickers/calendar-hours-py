@@ -9,16 +9,17 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 
 #Local imports
-from secrets.db_secrets import db_connection_string, db_name
+# from secrets.db_secrets import db_connection_string, db_name
+from config import app_config
 
 def get_mongo_client():
-    client = MongoClient('mongodb://localhost:27017/')
+    client = MongoClient(app_config.DATABASE_URI)
     return client
 
 class MongoDBClient:
-    def __init__(self):
-        self.client = MongoClient(db_connection_string)
-        self.db = self.client[db_name]
+    def __init__(self, app):
+        self.client = MongoClient(app_config.DATABASE_URI)
+        self.db = self.client[app_config.DATABASE_NAME]
         self.collection = self.db['users']
 
     def save_or_update_user(self, google_user, credentials):
@@ -126,10 +127,10 @@ class MongoDBClient:
 
     def connect_to_mongodb(self):
         # Connect to the MongoDB database
-        client = MongoClient(db_connection_string)
+        client = MongoClient(app_config.DATABASE_URI)
         print(f"Client: {client}")
 
-        db = client[db_name]
+        db = client[app_config.DATABASE_NAME]
         print(f"Database: {db}")
 
         collection = db['users']
