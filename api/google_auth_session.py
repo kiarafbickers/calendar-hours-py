@@ -27,19 +27,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from config import app_config
 from mongodb import MongoDBClient
 
-# client_secrets_file = 'secrets/client_secrets.json'
-# with open(client_secrets_file) as f:
-#     secrets = json.load(f)['installed']
-
-# Get from app setup in Google
-# client_id = secrets['client_id']
-# project_id = secrets['project_id']
-# auth_uri = secrets['auth_uri']
-# token_uri = secrets['token_uri']
-# auth_provider_x509_cert_url = secrets['auth_provider_x509_cert_url']
-# client_secret = secrets['client_secret']
-# redirect_uri = secrets['redirect_uris']
-
 # print(f"app with secrets_file:  {client_secrets_file}")
 print(f"app with client_id:     CLIENT_ID")
 print(f"app with project_id:    {app_config.PROJECT_ID}")
@@ -68,19 +55,6 @@ SCOPES = ['openid',
           'https://www.googleapis.com/auth/userinfo.profile',
           'https://www.googleapis.com/auth/calendar.readonly',
           'https://www.googleapis.com/auth/calendar']
-
-#
-# SCOPES = ['openid',
-#           'https://www.googleapis.com/auth/userinfo.email',
-#           'https://www.googleapis.com/auth/userinfo.profile',
-#           'https://www.googleapis.com/auth/calendar.readonly',
-#           'https://www.googleapis.com/auth/calendar']
-
-# # Helper function to read json file
-# def read_json(file_path, key):
-#     with open(file_path, "r") as f:
-#         data = json.load(f)
-#     return data[key]
 
 print("-------- Global Set Up App and Session ---------")
 # Create Flask app instance
@@ -111,18 +85,6 @@ Session(app)
 print("-------- Set Up Cross-Origin Resource Sharing --")
 CORS(app)
 print(f"app with CORS:      {app}")
-
-@app.after_request
-def add_cors_headers(response):
-    print("after_request executing!")
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    if request.method == 'OPTIONS':
-        response.headers['Access-Control-Allow-Methods'] = 'DELETE, GET, POST, PUT'
-        headers = request.headers.get('Access-Control-Request-Headers')
-        if headers:
-            response.headers['Access-Control-Allow-Headers'] = headers
-    return response
-app.after_request(add_cors_headers)
 
 # Initialize endpoint
 @app.route('/initialize_app', methods=['GET'])
