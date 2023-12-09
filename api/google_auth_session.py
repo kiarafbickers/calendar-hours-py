@@ -6,9 +6,11 @@ from flask.sessions import SecureCookieSessionInterface
 from flask_cors import CORS, cross_origin
 
 # Standard library imports
-# import json
+import json
+from utils import read_json
 
 # Security and Crypto imports
+import secrets
 from cryptography.fernet import Fernet
 from itsdangerous import URLSafeTimedSerializer
 
@@ -27,13 +29,13 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from config import app_config
 from mongodb import MongoDBClient
 
-# print(f"app with secrets_file:  {client_secrets_file}")
-print(f"app with client_id:     CLIENT_ID")
+print(f"app with secrets_file:  'secrets/client_secrets.json'")
+print(f"app with client_id:     {app_config.CLIENT_ID}")
 print(f"app with project_id:    {app_config.PROJECT_ID}")
 print(f"app with auth_uri:      {app_config.AUTH_URI}")
 print(f"app with token_uri:     {app_config.TOKEN_URI}")
 print(f"app with auth_cert_url: {app_config.AUTH_PROVIDER_X509_CERT_URL}")
-print(f"app with client_secret: CLIENT_SECRET")
+print(f"app with client_secret: {app_config.CLIENT_SECRET}")
 print(f"app with redirect_uri:  {app_config.REDIRECT_URIS}")
 
 print(f"app with DATABASE_URI:  {app_config.DATABASE_URI}")
@@ -63,7 +65,7 @@ print(f"app with Flask:     {app}")
 
 print("-------- Encrypt Session Cookie ----------------")
 
-# cookie_key = read_json("secrets/cookie_secrets.json", "cookie_key")
+cookie_key = read_json("secrets/cookie_secrets.json", "cookie_key")
 print(f"cookie_key:         {app_config.COOKIE_KEY}")
 
 app.secret_key = app_config.COOKIE_KEY
@@ -276,6 +278,8 @@ def oauth_callback():
     credentials = flow.credentials
     session['credentials'] = credentials.to_json()
     return redirect('/dashboard')
+
+
 
 # # Session index count endpoint
 # @app.route('/', methods=['GET'])

@@ -39,8 +39,8 @@ def get_user_calendars():
         # Get the list of all calendars for the user
         calendars_result = cal_service.calendarList().list().execute()
         all_calendars = calendars_result.get('items', [])
-        # print("all_calendars: ")
-        # print(json.dumps(all_calendars, indent=4))
+        print("all_calendars: ")
+        print(json.dumps(all_calendars, indent=4))
 
         # Add an initialized "disabled" flag to each calendar
         initialize_calendar_enabled_flags(user_email, all_calendars, collection)

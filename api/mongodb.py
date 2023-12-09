@@ -9,7 +9,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 
 #Local imports
-# from secrets.db_secrets import db_connection_string, db_name
+from secrets.db_secrets import db_connection_string, db_name
 from config import app_config
 
 def get_mongo_client():
