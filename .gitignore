@@ -6,3 +6,6 @@
 
 .env
 .vercel
+
+__pycache__
+__init__.py
